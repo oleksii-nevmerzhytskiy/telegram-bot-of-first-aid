@@ -4,11 +4,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-bot = telebot.TeleBot(os.getenv('SECRET_KEY'))
+bot = telebot.TeleBot(os.getenv('BOT_SECRET_KEY'))
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, f"{message.from_user.first_name} {message.from_user.last_name} hello!!!")
+    print(message)
+    bot.send_message(message.chat.id, "[+380684794539](+380684794539)", parse_mode="Markdown")
+
 
 
 bot.polling(none_stop=True)

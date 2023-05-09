@@ -4,6 +4,8 @@ import os
 import sys
 from dotenv import load_dotenv
 
+# from telegram.client import start_bot
+
 load_dotenv()
 
 def main():
@@ -22,3 +24,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    #start_bot()
+

@@ -3,7 +3,10 @@ from project.entities.decision_tree import DecisionTree
 from project.entities.decision_tree_node import DecisionTreeNode
 
 
-
+class DecisionTreeRepoFactory(object):
+    @staticmethod
+    def get() -> IDecisionTree:
+        return DjDecisionTree()
 
 class DjDecisionTree(IDecisionTree):
     def get_decision_tree(self) -> DecisionTree:

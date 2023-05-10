@@ -1,9 +1,12 @@
-
+from project.decision_tree.repos import DecisionTreeRepoFactory
 from project.entities.decision_tree_node import DecisionTreeNode
 from project.decision_tree.interfaces import IDecisionUseCase, IDecisionTree
 
 
-
+class DecisionTreeUseCaseFactory(object):
+    @staticmethod
+    def get() -> IDecisionUseCase:
+        return DecisionTreeUseCase(DecisionTreeRepoFactory.get())
 
 class DecisionTreeUseCase(IDecisionUseCase):
     def __init__(self, tree_repo: IDecisionTree):

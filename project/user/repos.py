@@ -6,6 +6,14 @@ from project.entities.user_state import UserState, Module
 from project.user.interfaces import IUserRepository, IUserStateRepository
 
 
+
+
+class UserRepoFactory(object):
+    @staticmethod
+    def get() -> IUserRepository:
+        return DjUserRepo()
+
+
 class DjUserRepo(IUserRepository):
     def get_by_chat_id(self, chat_id: str) -> User:
         try:
@@ -43,6 +51,10 @@ def user_to_django(user: User) -> DjUser:
         updated_at=user.updated_at,
     )
 
+class UserStateRepoFactory(object):
+    @staticmethod
+    def get() -> IUserStateRepository:
+        return DjUserStateRepo()
 
 class DjUserStateRepo(IUserStateRepository):
 

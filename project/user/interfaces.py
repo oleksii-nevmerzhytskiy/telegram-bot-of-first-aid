@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from project.entities.user import User
 from project.entities.user_state import UserState
 from project.user.requests import ReceiveMassageRequest
-from project.user.response import ReceiveMassageResponse, InitUserStateResponse
+from project.user.response import ReceiveMassageResponse, InitUserStateResponse, InitUserResponse
 
 
 class IUserRepository(ABC):
@@ -19,6 +19,10 @@ class IUserRepository(ABC):
 class IUserUseCase(ABC):
     @abstractmethod
     def receive_message(self, req: ReceiveMassageRequest) -> ReceiveMassageResponse:
+        raise NotImplementedError
+
+    @abstractmethod
+    def init_user(self, chat_id: str) -> InitUserResponse:
         raise NotImplementedError
 
 

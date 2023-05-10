@@ -1,11 +1,17 @@
 from project.decision_tree.interfaces import IDecisionUseCase
+from project.decision_tree.usecase import DecisionTreeUseCaseFactory
 from project.entities.user import User
 from project.entities.user_state import UserState
 from project.user.interfaces import IUserUseCase, IUserRepository, IUserStateUseCase, IUserStateRepository
+from project.user.repos import UserRepoFactory, UserStateRepoFactory
 from project.user.requests import ReceiveMassageRequest
 from project.user.response import ReceiveMassageResponse, Status, InitUserStateResponse, InitUserResponse
 from project.entities.user_state import Module
 
+class UserUseCaseFactory(object):
+    @staticmethod
+    def get() -> IUserUseCase:
+        return UserUseCase(UserRepoFactory.get(), DecisionTreeUseCaseFactory.get(), UserStateUseCaseFactory.get())
 
 class UserUseCase(IUserUseCase):
     def __init__(self, repo: IUserRepository, decision_tree_use_case: IDecisionUseCase, user_state_use_case: IUserStateUseCase):
@@ -45,6 +51,12 @@ class UserUseCase(IUserUseCase):
             return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.ERROR)
 
         return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.OK, node=node)
+
+
+class UserStateUseCaseFactory(object):
+    @staticmethod
+    def get() -> IUserStateUseCase:
+        return UserStateUseCase(UserStateRepoFactory.get())
 
 class UserStateUseCase(IUserStateUseCase):
     def __init__(self, repo: IUserStateRepository):

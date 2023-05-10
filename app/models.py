@@ -11,3 +11,14 @@ class UserModel(models.Model):
 
     class Meta:
         db_table = 'users'
+
+
+class UserStateModel(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(UserModel, on_delete=models.PROTECT)
+    module = models.IntegerField()
+    category = models.CharField(max_length=50)
+    step = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+

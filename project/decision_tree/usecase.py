@@ -1,4 +1,5 @@
 from project.decision_tree.repos import DecisionTreeRepoFactory
+from project.decision_tree.response import DecisionTreeNodesResponse
 from project.entities.decision_tree_node import DecisionTreeNode
 from project.decision_tree.interfaces import IDecisionUseCase, IDecisionTree
 
@@ -33,13 +34,35 @@ class DecisionTreeUseCase(IDecisionUseCase):
 
         return None
 
-    def find_node_in_decision_tree(self, step: str, title: str) -> DecisionTreeNode:
-        tree = self.tree_repo.get_decision_tree()
+    def find_nodes_in_decision_tree(self, category: str, step: str, title: str) -> DecisionTreeNodesResponse:
+        tree = self.tree_repo.get_decision_tree(category)
+
+        if step == '' and title is None:
+            return DecisionTreeNodesResponse(nodes=tree.nodes)
+
+        if step == '':
+            for n in tree.nodes:
+                if n.title == title:
+                    if n.next_nodes is not None:
+                        return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step)
+                    else:
+                        return DecisionTreeNodesResponse(nodes=[], step='')
+
+            return DecisionTreeNodesResponse(nodes=None)
+
+
 
         for node in tree.nodes:
             n = self._find_node_in_decision_tree(step, title, node)
 
             if n is not None:
-                return n
+               if n.next_nodes is not None:
+                   return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step)
+               else:
+                   DecisionTreeNodesResponse(nodes=[])
 
-        return None
+        return DecisionTreeNodesResponse(nodes=None) # todo
+
+    def get_categories(self) -> [str]:
+        return self.tree_repo.get_categories()
+

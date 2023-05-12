@@ -2,8 +2,9 @@ from abc import ABC, abstractmethod
 
 from project.entities.user import User
 from project.entities.user_state import UserState
-from project.user.requests import ReceiveMassageRequest
-from project.user.response import ReceiveMassageResponse, InitUserStateResponse, InitUserResponse
+from project.user.requests import ReceiveMassageRequest, UpdateUserStateRequest
+from project.user.response import ReceiveMassageResponse, InitUserStateResponse, InitUserResponse, GetUserStateResponse, \
+    UpdateUserStateResponse
 
 
 class IUserRepository(ABC):
@@ -40,4 +41,10 @@ class IUserStateRepository(ABC):
 class IUserStateUseCase(ABC):
     @abstractmethod
     def init_user_state(self, user_id: int) -> InitUserStateResponse:
+        raise NotImplementedError
+
+    def set_user_state(self, req: UpdateUserStateRequest) -> UpdateUserStateResponse:
+        raise NotImplementedError
+
+    def get_user_state(self, user_id: int) -> GetUserStateResponse:
         raise NotImplementedError

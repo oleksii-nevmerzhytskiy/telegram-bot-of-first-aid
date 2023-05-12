@@ -1,8 +1,20 @@
 import os
 import telebot
+from telebot import types
 
+from project.entities.user_state import Module
+from project.user.requests import ReceiveMassageRequest
 from project.user.response import Status
 from project.user.usecase import UserUseCaseFactory
+from django.utils.translation import gettext as _
+
+CONTENT_TYPES = ["audio", "document", "photo", "sticker", "video", "video_note", "voice", "contact",
+                 "new_chat_members", "left_chat_member", "new_chat_title", "new_chat_photo", "delete_chat_photo",
+                 "group_chat_created", "supergroup_chat_created", "channel_chat_created", "migrate_to_chat_id",
+                 "migrate_from_chat_id", "pinned_message"]
+
+places_btn_value = _('Search for the nearest medical facilities')
+about_btn_value = _('About the project')
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'first_aid_bot.settings')
 bot = telebot.TeleBot(os.getenv('BOT_SECRET_KEY'))
@@ -10,13 +22,48 @@ bot = telebot.TeleBot(os.getenv('BOT_SECRET_KEY'))
 
 user_use_case = UserUseCaseFactory.get()
 
+def create_init_keyboard(categories: [str]):
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+    itembtn = []
+    for category in categories:
+        itembtn.append(types.KeyboardButton(category))
+        if len(itembtn) == 2:
+            markup.add(itembtn[0], itembtn[1])
+            itembtn = []
+
+    if len(itembtn) > 0:
+        markup.add(itembtn[0])
+
+    itembtn1 = types.KeyboardButton(places_btn_value)
+    itembtn2 = types.KeyboardButton(about_btn_value)
+    markup.add(itembtn1, itembtn2)
+    return markup
 
 @bot.message_handler(commands=['start'])
 def start(message):
     response = user_use_case.init_user(message.chat.id)
     print(response)
+
     if response.status is Status.OK:
-        bot.send_message(message.chat.id, "Hello!!!")
+        bot.send_message(message.chat.id, _("Welcome message"), reply_markup=create_init_keyboard(response.categories))
+
+
+@bot.message_handler(content_types=['text'])
+def handle_message(message):
+    global places_btn_value
+    global about_btn_value
+
+    if message.text == places_btn_value:
+        pass
+    elif message.text == about_btn_value:
+        pass
+
+    resp = user_use_case.receive_message(ReceiveMassageRequest(massage=message.text, chat_id=message.chat.id))
+    print(resp)
+
+@bot.message_handler(content_types=CONTENT_TYPES)
+def fallback(message):
+    bot.send_message(message.chat.id, _("Use the buttons or restart the bot (/start)"))
 
 
 def start_polling():

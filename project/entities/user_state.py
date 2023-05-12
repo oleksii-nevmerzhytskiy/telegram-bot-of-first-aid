@@ -1,12 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, IntEnum
+from django.utils.translation import gettext
 
 
 class Module(IntEnum):
     INIT = 1
     DECISION_TREE = 2
     PLACES = 3
+    ABOUT_BOT = 4
+
 
 @dataclass
 class UserState:

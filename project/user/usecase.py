@@ -4,8 +4,9 @@ from project.entities.user import User
 from project.entities.user_state import UserState
 from project.user.interfaces import IUserUseCase, IUserRepository, IUserStateUseCase, IUserStateRepository
 from project.user.repos import UserRepoFactory, UserStateRepoFactory
-from project.user.requests import ReceiveMassageRequest
-from project.user.response import ReceiveMassageResponse, Status, InitUserStateResponse, InitUserResponse
+from project.user.requests import ReceiveMassageRequest, UpdateUserStateRequest
+from project.user.response import ReceiveMassageResponse, Status, InitUserStateResponse, InitUserResponse, \
+    UpdateUserStateResponse, GetUserStateResponse
 from project.entities.user_state import Module
 
 class UserUseCaseFactory(object):
@@ -18,6 +19,10 @@ class UserUseCase(IUserUseCase):
         self.repo = repo
         self.decision_tree_use_case = decision_tree_use_case
         self.user_state_use_case = user_state_use_case
+
+
+    places = 'places message'
+    about = 'about message'
 
     def init_user(self, chat_id: str) -> InitUserResponse:
         resp = self.repo.get_by_chat_id(chat_id=chat_id)
@@ -35,23 +40,65 @@ class UserUseCase(IUserUseCase):
         if status_resp.status == Status.ERROR:
             return InitUserResponse(status=Status.ERROR)
 
-        return InitUserResponse(status=Status.OK)
+        categories = self.decision_tree_use_case.get_categories()
+
+        return InitUserResponse(status=Status.OK, categories=categories)
 
     def receive_message(self, req: ReceiveMassageRequest) -> ReceiveMassageResponse:
-        resp = self.repo.get_by_chat_id(chat_id = req.chat_id)
+        user = self.repo.get_by_chat_id(chat_id=req.chat_id)
 
-        if resp is None:
-            resp = self.repo.save_user(User(chat_id=req.chat_id, enabled=True))
+        if user is None:
+            user = self.repo.save_user(User(chat_id=req.chat_id, enabled=True))
 
-        if not resp.enabled:
+        if not user.enabled:
             return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.USER_DISABLED)
 
-        node = self.decision_tree_use_case.find_node_in_decision_tree('test_step3', req.massage)
-        if node is None:
-            return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.ERROR)
+        user_state = self.user_state_use_case.get_user_state(user.id)
 
-        return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.OK, node=node)
+        if user_state.state.module == Module.PLACES:
+            self.handle_places(req.massage)
 
+        elif user_state.state.module == Module.ABOUT_BOT:
+            self.handle_about_bot()
+
+        elif user_state.state.module == Module.DECISION_TREE:
+            return self.handle_decision_tree(user, user_state.state.category, user_state.state.step, req.massage)
+
+        elif user_state.state.module == Module.INIT:
+            return self.handle_init(user, req.massage)
+
+
+
+
+        return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.OK)
+
+    def handle_places(self, message):
+        pass
+
+    def handle_about_bot(self):
+        pass
+
+    def handle_decision_tree(self, user, category, step, message):
+        dt_nodes_resp = self.decision_tree_use_case.find_nodes_in_decision_tree(category, step, message)
+        if dt_nodes_resp is None:
+            return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
+
+        state = self.user_state_use_case.set_user_state(UpdateUserStateRequest(user_id=user.id, module=Module.DECISION_TREE, category=category, step=dt_nodes_resp.step))
+        if state is None:
+            return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
+
+        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, message={'nodes': dt_nodes_resp.nodes})
+
+    def handle_init(self, user, message):
+        categories = self.decision_tree_use_case.get_categories()
+        if message in categories:
+            return self.handle_decision_tree(user, message, step='', message=None)
+
+        if message == self.places:
+            self.handle_places(message)
+
+        if message == self.about:
+            self.handle_about_bot()
 
 class UserStateUseCaseFactory(object):
     @staticmethod
@@ -77,3 +124,27 @@ class UserStateUseCase(IUserStateUseCase):
             return InitUserStateResponse(status=Status.ERROR)
 
         return InitUserStateResponse(status=Status.OK)
+
+
+    def set_user_state(self, req: UpdateUserStateRequest) -> UpdateUserStateResponse:
+        state = self.repo.get_by_user_id(user_id=req.user_id)
+        if state is None:
+            return UpdateUserStateResponse(status=Status.ERROR)
+
+        state.module = req.module
+        state.category = req.category
+        state.step = req.step
+
+        state = self.repo.save_user_state(state)
+
+        if state is None:
+            return UpdateUserStateResponse(status=Status.ERROR)
+
+        return UpdateUserStateResponse(status=Status.OK)
+
+    def get_user_state(self, user_id: int) -> GetUserStateResponse:
+        state = self.repo.get_by_user_id(user_id=user_id)
+        if state is None:
+            return GetUserStateResponse(status=Status.ERROR)
+
+        return GetUserStateResponse(status=Status.OK, state=state)

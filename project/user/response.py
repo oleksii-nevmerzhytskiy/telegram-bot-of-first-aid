@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from project.entities.decision_tree_node import DecisionTreeNode
+from project.entities.user_state import Module, UserState
 
 
 class Status(Enum):
@@ -13,15 +14,27 @@ class Status(Enum):
 class ReceiveMassageResponse:
     status: Status = None
     chat_id: str = None
-    node: DecisionTreeNode = None
+    message: dict = None
 
 
 @dataclass
 class InitUserStateResponse:
     status: Status = None
 
+@dataclass
+class UpdateUserStateResponse:
+    status: Status = None
+
 
 @dataclass
 class InitUserResponse:
     status: Status = None
+    categories: [str] = None
+
+
+@dataclass
+class GetUserStateResponse:
+    status: Status = None
+    state: UserState = None
+
 

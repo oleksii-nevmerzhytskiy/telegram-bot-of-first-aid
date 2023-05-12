@@ -8,3 +8,5 @@ class DecisionTreeNodesResponse:
 
     step: str = ''
     nodes: [DecisionTreeNode] = None
+    instruction: str = None
+    image: str = None

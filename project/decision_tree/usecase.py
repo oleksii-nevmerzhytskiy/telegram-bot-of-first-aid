@@ -36,17 +36,16 @@ class DecisionTreeUseCase(IDecisionUseCase):
 
     def find_nodes_in_decision_tree(self, category: str, step: str, title: str) -> DecisionTreeNodesResponse:
         tree = self.tree_repo.get_decision_tree(category)
-
         if step == '' and title is None:
-            return DecisionTreeNodesResponse(nodes=tree.nodes)
+            return DecisionTreeNodesResponse(nodes=tree.nodes, instruction=tree.instruction, image=tree.image)
 
         if step == '':
             for n in tree.nodes:
                 if n.title == title:
                     if n.next_nodes is not None:
-                        return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step)
+                        return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step, instruction=n.instruction, image=n.image)
                     else:
-                        return DecisionTreeNodesResponse(nodes=[], step='')
+                        return DecisionTreeNodesResponse(nodes=[], step='', instruction=n.instruction, image=n.image)
 
             return DecisionTreeNodesResponse(nodes=None)
 
@@ -54,15 +53,17 @@ class DecisionTreeUseCase(IDecisionUseCase):
 
         for node in tree.nodes:
             n = self._find_node_in_decision_tree(step, title, node)
-
+            print(n)
             if n is not None:
                if n.next_nodes is not None:
-                   return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step)
+                   return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step, instruction=n.instruction, image=n.image)
                else:
-                   DecisionTreeNodesResponse(nodes=[])
+                   return DecisionTreeNodesResponse(nodes=[], step=n.step, instruction=n.instruction, image=n.image)
 
         return DecisionTreeNodesResponse(nodes=None) # todo
 
     def get_categories(self) -> [str]:
         return self.tree_repo.get_categories()
+
+
 

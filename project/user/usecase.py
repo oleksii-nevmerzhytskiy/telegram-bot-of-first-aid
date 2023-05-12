@@ -1,5 +1,6 @@
 from project.decision_tree.interfaces import IDecisionUseCase
 from project.decision_tree.usecase import DecisionTreeUseCaseFactory
+from project.entities.decision_tree_node import DecisionTreeNode
 from project.entities.user import User
 from project.entities.user_state import UserState
 from project.user.interfaces import IUserUseCase, IUserRepository, IUserStateUseCase, IUserStateRepository
@@ -87,7 +88,9 @@ class UserUseCase(IUserUseCase):
         if state is None:
             return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
 
-        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, message={'nodes': dt_nodes_resp.nodes})
+        titles = self.get_titles(dt_nodes_resp.nodes)
+
+        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, instruction=dt_nodes_resp.instruction, image=dt_nodes_resp.image, titles=titles)
 
     def handle_init(self, user, message):
         categories = self.decision_tree_use_case.get_categories()
@@ -99,6 +102,15 @@ class UserUseCase(IUserUseCase):
 
         if message == self.about:
             self.handle_about_bot()
+
+    def get_titles(self, nodes: [DecisionTreeNode]) -> [str]:
+        titles = []
+        if nodes is None:
+            return None
+        for node in nodes:
+            titles.append(node.title)
+        return titles
+
 
 class UserStateUseCaseFactory(object):
     @staticmethod
@@ -148,3 +160,4 @@ class UserStateUseCase(IUserStateUseCase):
             return GetUserStateResponse(status=Status.ERROR)
 
         return GetUserStateResponse(status=Status.OK, state=state)
+

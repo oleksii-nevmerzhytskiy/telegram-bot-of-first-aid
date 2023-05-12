@@ -2,7 +2,7 @@ from project.decision_tree.interfaces import IDecisionTree
 from project.entities.decision_tree import DecisionTree
 from project.entities.decision_tree_node import DecisionTreeNode
 
-trees = [DecisionTree(category='I dont know',
+trees = [DecisionTree(category='I dont know', instruction='test_instruction1',
                       nodes=[DecisionTreeNode(title="test3", step="test_step3", instruction="test_instruction3",
                                               next_nodes=[DecisionTreeNode(title="test1", step="test_step1",
                                                                            instruction="test_instruction1",
@@ -22,7 +22,7 @@ trees = [DecisionTree(category='I dont know',
                                                                                DecisionTreeNode(title="test8",
                                                                                                 step="test_step8",
                                                                                                 instruction="test_instruction8")])])]),
-         DecisionTree(category='A person has a trauma',
+         DecisionTree(category='A person has a trauma', instruction='test_instruction2',
                       nodes=[DecisionTreeNode(title="test3", step="test_step3", instruction="test_instruction3",
                                               next_nodes=[DecisionTreeNode(title="test1", step="test_step1",
                                                                            instruction="test_instruction1",
@@ -53,7 +53,10 @@ class DecisionTreeRepoFactory(object):
 class DjDecisionTree(IDecisionTree):
 
     def get_categories(self) -> [str]:
-        categories = ['I dont know', 'A person has a trauma', 'Tactical medical aid', 'The person feels unwell']
+        categories = []
+        global trees
+        for tree in trees:
+            categories.append(tree.category)
         return categories
 
     def get_decision_tree(self, category: str) -> DecisionTree:

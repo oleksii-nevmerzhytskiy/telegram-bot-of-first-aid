@@ -8,6 +8,8 @@ from project.entities.decision_tree_node import DecisionTreeNode
 class DecisionTree:
     id: int = None
     category: str = None
+    instruction: str = None
+    image: str = None
     nodes: [DecisionTreeNode] = None
     created_at: datetime = None
     updated: datetime = None

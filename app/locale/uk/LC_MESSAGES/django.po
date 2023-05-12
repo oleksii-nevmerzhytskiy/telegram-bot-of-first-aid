@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-11 23:07+0300\n"
+"POT-Creation-Date: 2023-05-12 17:54+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,31 +21,23 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: .\app\bot.py:23
-msgid "I dont know"
-msgstr "Не знаю"
-
-#: .\app\bot.py:24
-msgid "A person has a trauma"
-msgstr "У людини травма"
-
-#: .\app\bot.py:25
-msgid "Tactical medical aid"
-msgstr "Допомога під час бойових дій"
-
-#: .\app\bot.py:26
-msgid "The person feels unwell"
-msgstr "Людині погано"
-
-#: .\app\bot.py:27
+#: .\app\bot.py:16
 msgid "Search for the nearest medical facilities"
 msgstr "Пошук найближчих медичних закладів"
 
-#: .\app\bot.py:28
+#: .\app\bot.py:17
 msgid "About the project"
 msgstr "Про проєкт"
 
-#: .\app\bot.py:39
+#: .\app\bot.py:18
+msgid "Back to reality"
+msgstr "Повернутись назад"
+
+#: .\app\bot.py:19
+msgid "Main"
+msgstr "На головну"
+
+#: .\app\bot.py:59
 msgid "Welcome message"
 msgstr ""
 "Бот не містить медичних рекомендацій.\n"
@@ -56,6 +48,18 @@ msgstr ""
 "\n"
 "Що трапилося?"
 
-#: .\app\bot.py:48
+#: .\app\bot.py:86
 msgid "Use the buttons or restart the bot (/start)"
 msgstr "Використайте кнопки, або перезавантажте бота (/start)"
+
+#~ msgid "I dont know"
+#~ msgstr "Не знаю"
+
+#~ msgid "A person has a trauma"
+#~ msgstr "У людини травма"
+
+#~ msgid "Tactical medical aid"
+#~ msgstr "Допомога під час бойових дій"
+
+#~ msgid "The person feels unwell"
+#~ msgstr "Людині погано"

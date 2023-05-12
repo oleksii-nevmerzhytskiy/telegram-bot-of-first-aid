@@ -14,7 +14,9 @@ class Status(Enum):
 class ReceiveMassageResponse:
     status: Status = None
     chat_id: str = None
-    message: dict = None
+    instruction: str = None
+    image: str = None
+    titles: [str] = None
 
 
 @dataclass

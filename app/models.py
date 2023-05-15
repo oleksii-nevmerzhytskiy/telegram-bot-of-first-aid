@@ -26,12 +26,13 @@ class UserStateModel(models.Model):
 
 
 class DecisionTreeModel(MPTTModel):
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
-    instruction = models.CharField(max_length=300, default='')
+    instruction = models.TextField(default='')
     image = models.ImageField(upload_to='images/', default='', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
     def __str__(self):
         return self.name

@@ -2,9 +2,8 @@ import os
 import telebot
 from telebot import types
 
-from project.entities.user_state import Module
+from project.entities.status import Status
 from project.user.requests import ReceiveMassageRequest
-from project.user.response import Status
 from project.user.usecase import UserUseCaseFactory
 from django.utils.translation import gettext as _
 
@@ -80,6 +79,14 @@ def handle_message(message):
 
     resp = user_use_case.receive_message(ReceiveMassageRequest(massage=message.text, chat_id=message.chat.id))
 
+    if resp.status == Status.ERROR:
+        bot.send_message(message.chat.id, _("Use the buttons or restart the bot (/start)"))
+        return
+    str_image = str(resp.image)
+    if not str_image == '':
+        photo_file = open(str_image, 'rb')
+        bot.send_photo(message.chat.id, photo_file)
+        photo_file.close()
     titles = resp.titles
     if titles is None:
         bot.send_message(message.chat.id, resp.instruction, reply_markup=create_service_keyboard())

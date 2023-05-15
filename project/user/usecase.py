@@ -81,7 +81,7 @@ class UserUseCase(IUserUseCase):
 
     def handle_decision_tree(self, user, category, step, message):
         dt_nodes_resp = self.decision_tree_use_case.find_nodes_in_decision_tree(category, step, message)
-        if dt_nodes_resp is None:
+        if dt_nodes_resp is None or dt_nodes_resp.status == Status.ERROR:
             return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
 
         state = self.user_state_use_case.set_user_state(UpdateUserStateRequest(user_id=user.id, module=Module.DECISION_TREE, category=category, step=dt_nodes_resp.step))

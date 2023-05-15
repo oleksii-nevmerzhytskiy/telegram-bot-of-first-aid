@@ -2,6 +2,7 @@ from project.decision_tree.repos import DecisionTreeRepoFactory
 from project.decision_tree.response import DecisionTreeNodesResponse
 from project.entities.decision_tree_node import DecisionTreeNode
 from project.decision_tree.interfaces import IDecisionUseCase, IDecisionTree
+from project.entities.status import Status
 
 
 class DecisionTreeUseCaseFactory(object):
@@ -36,31 +37,32 @@ class DecisionTreeUseCase(IDecisionUseCase):
 
     def find_nodes_in_decision_tree(self, category: str, step: str, title: str) -> DecisionTreeNodesResponse:
         tree = self.tree_repo.get_decision_tree(category)
+        if tree is None:
+            return DecisionTreeNodesResponse(status=Status.ERROR)
         if step == '' and title is None:
-            return DecisionTreeNodesResponse(nodes=tree.nodes, instruction=tree.instruction, image=tree.image)
+            return DecisionTreeNodesResponse(nodes=tree.nodes, instruction=tree.instruction, image=tree.image, status=Status.OK)
 
         if step == '':
             for n in tree.nodes:
                 if n.title == title:
                     if n.next_nodes is not None:
-                        return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step, instruction=n.instruction, image=n.image)
+                        return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step, instruction=n.instruction, image=n.image, status=Status.OK)
                     else:
-                        return DecisionTreeNodesResponse(nodes=[], step='', instruction=n.instruction, image=n.image)
+                        return DecisionTreeNodesResponse(nodes=[], step='', instruction=n.instruction, image=n.image, status=Status.OK)
 
-            return DecisionTreeNodesResponse(nodes=None)
+            return DecisionTreeNodesResponse(status=Status.ERROR)
 
 
 
         for node in tree.nodes:
             n = self._find_node_in_decision_tree(step, title, node)
-            print(n)
             if n is not None:
                if n.next_nodes is not None:
                    return DecisionTreeNodesResponse(nodes=n.next_nodes, step=n.step, instruction=n.instruction, image=n.image)
                else:
                    return DecisionTreeNodesResponse(nodes=[], step=n.step, instruction=n.instruction, image=n.image)
 
-        return DecisionTreeNodesResponse(nodes=None) # todo
+        return DecisionTreeNodesResponse(status=Status.ERROR) # todo
 
     def get_categories(self) -> [str]:
         return self.tree_repo.get_categories()

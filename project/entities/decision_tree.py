@@ -12,5 +12,5 @@ class DecisionTree:
     image: str = None
     nodes: [DecisionTreeNode] = None
     created_at: datetime = None
-    updated: datetime = None
+    updated_at: datetime = None
 

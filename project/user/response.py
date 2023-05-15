@@ -1,13 +1,10 @@
 from dataclasses import dataclass
-from enum import Enum
-from project.entities.decision_tree_node import DecisionTreeNode
-from project.entities.user_state import Module, UserState
+
+from project.entities.status import Status
+from project.entities.user_state import UserState
 
 
-class Status(Enum):
-    OK = 1
-    USER_DISABLED = 2
-    ERROR = 3
+
 
 
 @dataclass

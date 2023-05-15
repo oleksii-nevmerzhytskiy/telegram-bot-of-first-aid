@@ -1,47 +1,8 @@
+from app.models import DecisionTreeModel
 from project.decision_tree.interfaces import IDecisionTree
 from project.entities.decision_tree import DecisionTree
 from project.entities.decision_tree_node import DecisionTreeNode
 
-trees = [DecisionTree(category='I dont know', instruction='test_instruction1',
-                      nodes=[DecisionTreeNode(title="test3", step="test_step3", instruction="test_instruction3",
-                                              next_nodes=[DecisionTreeNode(title="test1", step="test_step1",
-                                                                           instruction="test_instruction1",
-                                                                           next_nodes=[
-                                                                               DecisionTreeNode(title="test5",
-                                                                                                step="test_step5",
-                                                                                                instruction="test_instruction5"),
-                                                                               DecisionTreeNode(title="test6",
-                                                                                                step="test_step6",
-                                                                                                instruction="test_instruction6")]),
-                                                          DecisionTreeNode(title="test2", step="test_step2",
-                                                                           instruction="test_instruction2",
-                                                                           next_nodes=[
-                                                                               DecisionTreeNode(title="test7",
-                                                                                                step="test_step7",
-                                                                                                instruction="test_instruction7"),
-                                                                               DecisionTreeNode(title="test8",
-                                                                                                step="test_step8",
-                                                                                                instruction="test_instruction8")])])]),
-         DecisionTree(category='A person has a trauma', instruction='test_instruction2',
-                      nodes=[DecisionTreeNode(title="test3", step="test_step3", instruction="test_instruction3",
-                                              next_nodes=[DecisionTreeNode(title="test1", step="test_step1",
-                                                                           instruction="test_instruction1",
-                                                                           next_nodes=[
-                                                                               DecisionTreeNode(title="test5",
-                                                                                                step="test_step5",
-                                                                                                instruction="test_instruction5"),
-                                                                               DecisionTreeNode(title="test6",
-                                                                                                step="test_step6",
-                                                                                                instruction="test_instruction6")]),
-                                                          DecisionTreeNode(title="test2", step="test_step2",
-                                                                           instruction="test_instruction2",
-                                                                           next_nodes=[
-                                                                               DecisionTreeNode(title="test7",
-                                                                                                step="test_step7",
-                                                                                                instruction="test_instruction7"),
-                                                                               DecisionTreeNode(title="test8",
-                                                                                                step="test_step8",
-                                                                                                instruction="test_instruction8")])])])]
 
 
 class DecisionTreeRepoFactory(object):
@@ -54,15 +15,36 @@ class DjDecisionTree(IDecisionTree):
 
     def get_categories(self) -> [str]:
         categories = []
-        global trees
+        trees = DecisionTreeModel.objects.filter(level=0)
+
         for tree in trees:
-            categories.append(tree.category)
+            categories.append(str(tree))
         return categories
 
-    def get_decision_tree(self, category: str) -> DecisionTree:
-        global trees
+    def _fill_decision_tree(self, node: DecisionTreeNode, tree: DecisionTreeModel):
+        children = tree.get_children()
+        if len(children) == 0:
+            return
+        for ch in children:
+            child_node = DecisionTreeNode(ch.id, title=ch.name, instruction=ch.instruction, image=ch.image, next_nodes=[], step=str(ch.id))
+            self._fill_decision_tree(child_node, ch)
 
-        for tree in trees:
-            if tree.category == category:
-                return tree
+            node.next_nodes.append(child_node)
+
+        return node
+
+    def get_decision_tree(self, category: str) -> DecisionTree:
+        root = DecisionTreeModel.objects.get(level=0, name=category)
+        decision_tree = DecisionTree(id=root.id, category=root.name, instruction=root.instruction, image=root.image,
+                                    nodes=[], created_at=root.created_at, updated_at=root.updated_at)
+        children = root.get_children()
+        for ch in children:
+            node = DecisionTreeNode(ch.id, title=ch.name, instruction=ch.instruction, image=ch.image, next_nodes=[], step=str(ch.id))
+            self._fill_decision_tree(node, ch)
+
+            decision_tree.nodes.append(node)
+
+        if decision_tree:
+            return decision_tree
+
         return None

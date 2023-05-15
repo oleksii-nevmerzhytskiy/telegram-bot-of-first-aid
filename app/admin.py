@@ -8,7 +8,7 @@ admin.site.register(UserStateModel)
 
 class BotAdmin(DraggableMPTTAdmin):
     mptt_indent_field = "indented_title"
-    mptt_level_indent = 40
+    mptt_level_indent = 30
 
 
 admin.site.register(DecisionTreeModel, BotAdmin)

@@ -102,6 +102,7 @@ class UserUseCase(IUserUseCase):
 
         if message == self.about:
             self.handle_about_bot()
+        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
 
     def get_titles(self, nodes: [DecisionTreeNode]) -> [str]:
         titles = []

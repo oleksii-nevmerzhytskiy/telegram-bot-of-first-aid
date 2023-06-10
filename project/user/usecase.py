@@ -1,6 +1,11 @@
+import os
+
+import googlemaps
+
 from project.decision_tree.interfaces import IDecisionUseCase
 from project.decision_tree.usecase import DecisionTreeUseCaseFactory
 from project.entities.decision_tree_node import DecisionTreeNode
+from project.entities.place import Place
 from project.entities.user import User
 from project.entities.user_state import UserState
 from project.user.interfaces import IUserUseCase, IUserRepository, IUserStateUseCase, IUserStateRepository
@@ -9,6 +14,7 @@ from project.user.requests import ReceiveMassageRequest, UpdateUserStateRequest
 from project.user.response import ReceiveMassageResponse, Status, InitUserStateResponse, InitUserResponse, \
     UpdateUserStateResponse, GetUserStateResponse
 from project.entities.user_state import Module
+from django.utils.translation import gettext as _
 
 class UserUseCaseFactory(object):
     @staticmethod
@@ -21,9 +27,11 @@ class UserUseCase(IUserUseCase):
         self.decision_tree_use_case = decision_tree_use_case
         self.user_state_use_case = user_state_use_case
 
-
-    places = 'places message'
-    about = 'about message'
+    def set_commands_messages(self, places_message: str, about_message: str, hospital_message: str, pharmacy_message: str):
+        self.places_message = places_message
+        self.about_message = about_message
+        self.hospital_message = hospital_message
+        self.pharmacy_message = pharmacy_message
 
     def init_user(self, chat_id: str) -> InitUserResponse:
         resp = self.repo.get_by_chat_id(chat_id=chat_id)
@@ -57,7 +65,7 @@ class UserUseCase(IUserUseCase):
         user_state = self.user_state_use_case.get_user_state(user.id)
 
         if user_state.state.module == Module.PLACES:
-            self.handle_places(req.massage)
+            return self.handle_places(user, req.massage, req.longitude, req.latitude)
 
         elif user_state.state.module == Module.ABOUT_BOT:
             self.handle_about_bot()
@@ -73,8 +81,40 @@ class UserUseCase(IUserUseCase):
 
         return ReceiveMassageResponse(chat_id=req.chat_id, status=Status.OK)
 
-    def handle_places(self, message):
-        pass
+    def handle_places(self, user, message, longitude=None, latitude=None):
+        mod = self.user_state_use_case.get_user_state(user.id).state.module
+        if mod == Module.INIT:
+            titles = [self.pharmacy_message, self.hospital_message]
+            state = self.user_state_use_case.set_user_state(
+                UpdateUserStateRequest(user_id=user.id, module=Module.PLACES, category='', step=''))
+            if state is None:
+                return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
+            return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, titles=titles, module=mod)
+
+        if mod == Module.PLACES:
+            if longitude == '' or latitude == '':
+                return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
+            gmaps = googlemaps.Client(key=os.getenv('GOOGLE_API_KEY'))
+
+            location = (latitude, longitude)
+            place_type = None
+            if message == self.pharmacy_message:
+                place_type = 'pharmacy'
+            elif place_type == self.hospital_message:
+                place_type = 'hospital'
+            else:
+                ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
+
+            places_result = gmaps.places_nearby(location=location, type=place_type, language='uk',
+                                                open_now=True, rank_by='distance', keyword=message)
+            places = []
+
+            for place_result in places_result['results'][:5]:
+                place_location = place_result['geometry']['location']
+                places.append(Place(place_name=place_result['name'], place_address=place_result['vicinity'],
+                                    longitude=place_location['lng'], latitude=place_location['lat']))
+
+            return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, module=mod, places=places)
 
     def handle_about_bot(self):
         pass
@@ -89,18 +129,18 @@ class UserUseCase(IUserUseCase):
             return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
 
         titles = self.get_titles(dt_nodes_resp.nodes)
-
-        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, instruction=dt_nodes_resp.instruction, image=dt_nodes_resp.image, titles=titles)
+        mod = self.user_state_use_case.get_user_state(user.id).state.module
+        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, instruction=dt_nodes_resp.instruction, image=dt_nodes_resp.image, titles=titles, module=mod)
 
     def handle_init(self, user, message):
         categories = self.decision_tree_use_case.get_categories()
         if message in categories:
             return self.handle_decision_tree(user, message, step='', message=None)
 
-        if message == self.places:
-            self.handle_places(message)
+        if message == self.places_message:
+            return self.handle_places(user, message)
 
-        if message == self.about:
+        if message == self.about_message:
             self.handle_about_bot()
         return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
 

@@ -6,7 +6,6 @@ from project.entities.status import Status
 
 @dataclass
 class DecisionTreeNodesResponse:
-
     step: str = ''
     nodes: [DecisionTreeNode] = None
     instruction: str = None

@@ -1,19 +1,19 @@
 from dataclasses import dataclass
 
+from project.entities.place import Place
 from project.entities.status import Status
-from project.entities.user_state import UserState
-
-
-
+from project.entities.user_state import UserState, Module
 
 
 @dataclass
 class ReceiveMassageResponse:
     status: Status = None
     chat_id: str = None
-    instruction: str = None
-    image: str = None
+    instruction: str = ''
+    image: str = ''
     titles: [str] = None
+    module: Module = None
+    places: [Place] = None
 
 
 @dataclass

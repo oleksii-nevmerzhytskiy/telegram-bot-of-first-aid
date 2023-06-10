@@ -26,6 +26,10 @@ class IUserUseCase(ABC):
     def init_user(self, chat_id: str) -> InitUserResponse:
         raise NotImplementedError
 
+    @abstractmethod
+    def set_commands_messages(self, places_message: str, about_message: str, hospital_message: str, pharmacy_message: str):
+        raise NotImplementedError
+
 
 
 

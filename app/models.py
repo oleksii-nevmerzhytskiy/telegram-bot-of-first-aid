@@ -8,9 +8,12 @@ class UserModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"Chat id: {self.chat_id}"
+
     class Meta:
         db_table = 'users'
-
+        verbose_name = "User"
 
 class UserStateModel(models.Model):
     id = models.AutoField(primary_key=True)
@@ -20,8 +23,14 @@ class UserStateModel(models.Model):
     step = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"id: {self.id}"
+
     class Meta:
         db_table = 'users_state'
+        verbose_name = "User state"
+
 
 
 
@@ -43,5 +52,6 @@ class DecisionTreeModel(MPTTModel):
 
     class Meta:
         db_table = 'decision_tree'
+        verbose_name = "Decision tree"
 
 

@@ -7,6 +7,8 @@ from project.entities.user_state import Module
 class ReceiveMassageRequest:
     massage: str = None
     chat_id: str = None
+    longitude: str = ''
+    latitude: str = ''
 
 @dataclass
 class UpdateUserStateRequest:

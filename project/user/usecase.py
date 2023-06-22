@@ -1,7 +1,4 @@
-import os
-
-import googlemaps
-
+from app.google_maps_api import places_API
 from project.decision_tree.interfaces import IDecisionUseCase
 from project.decision_tree.usecase import DecisionTreeUseCaseFactory
 from project.entities.decision_tree_node import DecisionTreeNode
@@ -94,27 +91,16 @@ class UserUseCase(IUserUseCase):
         if mod == Module.PLACES:
             if longitude == '' or latitude == '':
                 return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
-            gmaps = googlemaps.Client(key=os.getenv('GOOGLE_API_KEY'))
 
-            location = (latitude, longitude)
-            place_type = None
-            if message == self.pharmacy_message:
-                place_type = 'pharmacy'
-            elif place_type == self.hospital_message:
-                place_type = 'hospital'
-            else:
-                ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
-
-            places_result = gmaps.places_nearby(location=location, type=place_type, language='uk',
-                                                open_now=True, rank_by='distance', keyword=message)
-            places = []
-
-            for place_result in places_result['results'][:5]:
-                place_location = place_result['geometry']['location']
-                places.append(Place(place_name=place_result['name'], place_address=place_result['vicinity'],
-                                    longitude=place_location['lng'], latitude=place_location['lat']))
-
-            return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, module=mod, places=places)
+        place_type = None
+        if message == self.pharmacy_message:
+            place_type = 'pharmacy'
+        elif place_type == self.hospital_message:
+            place_type = 'hospital'
+        else:
+            ReceiveMassageResponse(chat_id=user.chat_id, status=Status.ERROR)
+        places = places_API(latitude=latitude, longitude=longitude, place_type=place_type, keyword=message)
+        return ReceiveMassageResponse(chat_id=user.chat_id, status=Status.OK, module=mod, places=places)
 
     def handle_about_bot(self):
         pass

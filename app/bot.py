@@ -1,4 +1,3 @@
-import json
 import os
 import telebot
 from telebot import types
@@ -9,8 +8,7 @@ from project.user.requests import ReceiveMassageRequest
 from project.user.usecase import UserUseCaseFactory
 from django.utils.translation import gettext as _
 
-LONGITUDE = ''
-LATITUDE = ''
+LOCATION = {}
 CONTENT_TYPES = ["audio", "document", "photo", "sticker", "video", "video_note", "voice", "contact",
                  "new_chat_members", "left_chat_member", "new_chat_title", "new_chat_photo", "delete_chat_photo",
                  "group_chat_created", "supergroup_chat_created", "channel_chat_created", "migrate_to_chat_id",
@@ -117,22 +115,23 @@ def handle_message(message):
                          reply_markup=add_main_button(create_places_keyboard()))
         return
     elif message.text == about_btn_value:
-        text = "Ласкаво просимо до нашого проекту, призначеного для надання домедичної допомоги через інтерактивного " \
-               "бота\! \n\nНаша мета полягає в тому, щоб дати можливість користувачам легко та швидко знаходити " \
-               "інформацію про надання долікарської допомоги, в будь\-який час доби\. \n\nНадання домедичної допомоги " \
-               "– це шанс врятувати чиєсь ЖИТТЯ, і щоб ця допомога була максимально правильною варто ознайомитись з " \
-               "[протоколами, затвердженими МОЗ](https://zakon.rada.gov.ua/laws/show/z0356-22#Text), за алгоритмами " \
-               "якого працює бот\. \n\nДякуємо, о обрали наш проект, і бажаємо вам міцного здоров'я та добробуту\!"
-        bot.send_message(message.chat.id, text, parse_mode='MarkdownV2',
+
+        text = _('about bot message')
+        bot.send_message(message.chat.id, text,
                          reply_markup=(create_service_keyboard()))
         return
     elif message.text == main:
         start(message)
         return
 
+    chat_id = message.chat.id
+    if chat_id in (LOCATION.keys()):
+        longitude = LOCATION[chat_id]['longitude']
+        latitude = LOCATION[chat_id]['latitude']
+    else:
+        longitude = latitude = ''
     resp = user_use_case.receive_message(
-        ReceiveMassageRequest(massage=message.text, chat_id=message.chat.id, longitude=LONGITUDE,
-                              latitude=LATITUDE))
+        ReceiveMassageRequest(massage=message.text, chat_id=chat_id, longitude=longitude, latitude=latitude))
 
     if resp.status == Status.ERROR:
         bot.send_message(message.chat.id, _("Use the buttons or restart the bot (/start)"))
@@ -161,13 +160,11 @@ def handle_decision_tree(resp, message):
 
 @bot.message_handler(content_types=['location'])
 def accept_location(message):
-    global LONGITUDE
-    global LATITUDE
+    global LOCATION
     resp = user_use_case.receive_message(ReceiveMassageRequest(massage=places_btn_value, chat_id=message.chat.id))
     bot.send_message(message.chat.id, _("select the institution type"),
                      reply_markup=add_service_keyboard(create_keyboard(resp.titles)))
-    LONGITUDE = (message.location.longitude)
-    LATITUDE = (message.location.latitude)
+    LOCATION[message.chat.id] = {'longitude': message.location.longitude, 'latitude': message.location.latitude}
 
 
 def handle_places(resp, message):
@@ -175,9 +172,6 @@ def handle_places(resp, message):
 
     for place in resp.places:
         callback = str(place.longitude) + ' ' + str(place.latitude)
-        callback_data = json.dumps(
-            {'place_name': place.place_name, 'place_address': place.place_address, 'longitude': place.longitude,
-             'latitude': place.latitude})
         markup.add(
             types.InlineKeyboardButton(place.place_address + ", " + place.place_name, callback_data=callback))
     bot.send_message(message.chat.id, _("Select an address to view details"), reply_markup=markup)
